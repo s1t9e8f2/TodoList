@@ -14,7 +14,7 @@ def print_menu():
 
 def get_choice():
   while True:
-    choice = input('Enter your choice: ')
+    choice = input('Enter your choice: ').strip()
     valid_choices = ('1', '2', '3', '4')
     if choice not in valid_choices:
       print('Invalid choice')
@@ -46,6 +46,9 @@ def add_task(tasks):
 def remove_task(tasks):
   display_tasks(tasks)
 
+  if not tasks:
+    return
+
   while True:
     try:
       task_number = int(input('Enter the task number: '))
@@ -69,15 +72,23 @@ def load_tasks():
 
   with open(CSV_FILE, mode='r', newline='', encoding='utf-8') as f:
     reader = csv.reader(f)
-    for row in reader:
-      if row:
-        tasks.append(row[0])
+    for line_number, row in enumerate(reader, start=1):
+      if not row:
+        continue
+      if len(row) > 1:
+        print(f'Warning: {CSV_FILE} line {line_number} has extra columns '
+              f'that will be ignored: {row}')
+      tasks.append(row[0])
 
   return tasks
 
 
 def save_tasks(tasks):
   """Save the current list of tasks to the CSV file (supports Cyrillic and Latin text via UTF-8)."""
+  directory = os.path.dirname(CSV_FILE)
+  if directory:
+    os.makedirs(directory, exist_ok=True)
+
   with open(CSV_FILE, mode='w', newline='', encoding='utf-8') as f:
     writer = csv.writer(f)
     for task in tasks:
