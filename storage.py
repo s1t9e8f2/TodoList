@@ -1,3 +1,6 @@
+"""Persistence layer: reading and writing tasks to the CSV file,
+including migration of files saved before the ETA column existed."""
+
 import csv
 import os
 from datetime import date, datetime, timedelta
@@ -6,78 +9,6 @@ CSV_FILE = 'MyTasks.csv'
 CSV_HEADER = ['Number', 'Task', 'ETA']
 ETA_DATE_FORMAT = '%Y-%m-%d'
 DEFAULT_ETA_DAYS = 14
-
-
-def print_menu():
-  print('\nTodo List Menu:')
-  print('1. View Tasks')
-  print('2. Add a Task')
-  print('3. Remove a Task')
-  print('4. Exit')
-
-
-def get_choice():
-  while True:
-    choice = input('Enter your choice: ').strip()
-    valid_choices = ('1', '2', '3', '4')
-    if choice not in valid_choices:
-      print('Invalid choice')
-      continue
-    else:
-      return choice
-
-
-def get_eta_input():
-  """Ask the user for an ETA date and validate its format."""
-  while True:
-    eta_text = input('Enter ETA (YYYY-MM-DD): ').strip()
-    try:
-      datetime.strptime(eta_text, ETA_DATE_FORMAT)
-      return eta_text
-    except ValueError:
-      print('Invalid date format! Please use YYYY-MM-DD.')
-
-
-def display_tasks(tasks):
-  if not tasks:
-    print('No tasks in the list.')
-    return
-
-  print(f'{"Number":<8}{"Task":<30}{"ETA":<12}')
-  for index, item in enumerate(tasks, start=1):
-    print(f'{index:<8}{item["task"]:<30}{item["eta"]:<12}')
-
-
-def add_task(tasks):
-  while True:
-    task_text = input('Enter a new task: ').strip()
-    if len(task_text) != 0:
-      break
-    else:
-      print('Invalid task!')
-
-  eta = get_eta_input()
-  tasks.append({'task': task_text, 'eta': eta})
-  save_tasks(tasks)
-
-
-def remove_task(tasks):
-  display_tasks(tasks)
-
-  if not tasks:
-    return
-
-  while True:
-    try:
-      task_number = int(input('Enter the task number: '))
-      if 1 <= task_number <= len(tasks):
-        tasks.pop(task_number - 1)
-        save_tasks(tasks)
-        break
-      else:
-        raise ValueError
-    except ValueError:
-      print('Invalid task number')
 
 
 def _default_eta():
@@ -154,25 +85,3 @@ def save_tasks(tasks):
     writer.writerow(CSV_HEADER)
     for index, item in enumerate(tasks, start=1):
       writer.writerow([index, item['task'], item['eta']])
-
-
-def main():
-  tasks = load_tasks()
-
-  while True:
-    print_menu()
-
-    choice = get_choice()
-
-    if choice == '1':
-      display_tasks(tasks)
-    elif choice == '2':
-      add_task(tasks)
-    elif choice == '3':
-      remove_task(tasks)
-    else:
-      break
-
-
-if __name__ == '__main__':
-  main()
