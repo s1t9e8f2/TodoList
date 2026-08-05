@@ -1,6 +1,6 @@
 """User-input validation: menu choices and ETA dates."""
 
-from datetime import datetime
+from datetime import date, datetime
 
 from storage import ETA_DATE_FORMAT
 
@@ -17,11 +17,20 @@ def get_choice():
 
 
 def get_eta_input():
-  """Ask the user for an ETA date and validate its format."""
+  """Ask the user for an ETA date, validate its format, and require it
+  to be today or a future date (a past ETA is rejected as a likely
+  mistake)."""
   while True:
     eta_text = input('Enter ETA (YYYY-MM-DD): ').strip()
+
     try:
-      datetime.strptime(eta_text, ETA_DATE_FORMAT)
-      return eta_text
+      parsed_date = datetime.strptime(eta_text, ETA_DATE_FORMAT).date()
     except ValueError:
       print('Invalid date format! Please use YYYY-MM-DD.')
+      continue
+
+    if parsed_date < date.today():
+      print('ETA cannot be in the past. Please enter today or a future date.')
+      continue
+
+    return eta_text

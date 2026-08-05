@@ -14,7 +14,11 @@ def print_menu():
 
 
 def main():
-  tasks = load_tasks()
+  try:
+    tasks = load_tasks()
+  except ValueError as error:
+    print(f'Error: {error}')
+    return
 
   while True:
     print_menu()
@@ -32,4 +36,10 @@ def main():
 
 
 if __name__ == '__main__':
-  main()
+  try:
+    main()
+  except (KeyboardInterrupt, EOFError):
+    # Ctrl+C raises KeyboardInterrupt; Ctrl+D (Unix) / Ctrl+Z (Windows) or
+    # a closed/exhausted input stream raises EOFError from input(). Exit
+    # quietly instead of printing a raw traceback.
+    print('\nExiting...')

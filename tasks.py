@@ -37,6 +37,11 @@ def remove_task(tasks):
     try:
       task_number = int(input('Enter the task number: '))
       if 1 <= task_number <= len(tasks):
+        # task_number here is the *position* shown by display_tasks(),
+        # not a stored identifier - it always matches list order because
+        # storage.save_tasks() also always derives Number from position.
+        # If Number is ever persisted/read as a real ID, this pop()
+        # logic must be updated to look it up instead of assuming it.
         tasks.pop(task_number - 1)
         save_tasks(tasks)
         break

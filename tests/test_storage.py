@@ -136,6 +136,36 @@ def test_load_tasks_warns_on_extra_columns_in_legacy_format(storage_csv, capsys)
   assert 'Warning' in captured.out
 
 
+def test_load_tasks_migration_creates_backup_file(storage_csv):
+  """Regression test: migrating a legacy file used to overwrite it
+  immediately with no way to recover the original content. A .bak copy
+  of the original file must now be created first."""
+  with open(storage_csv, mode='w', newline='', encoding='utf-8') as f:
+    f.write('Legacy task\r\n')
+
+  storage.load_tasks()
+
+  backup_path = storage_csv + '.bak'
+  assert os.path.exists(backup_path)
+  with open(backup_path, encoding='utf-8') as f:
+    assert f.read() == 'Legacy task\n'
+
+
+# --- ambiguous / unrecognized header -----------------------------------
+
+def test_load_tasks_raises_on_unrecognized_header(storage_csv):
+  """Regression test: a header using different columns (e.g. 'Task,ETA'
+  with no Number column) used to be silently treated as legacy data,
+  corrupting real ETA values with the default. It must now raise a
+  clear error instead of guessing."""
+  with open(storage_csv, mode='w', newline='', encoding='utf-8') as f:
+    f.write('Task,ETA\r\n')
+    f.write('Buy milk,2026-08-03\r\n')
+
+  with pytest.raises(ValueError, match='unrecognized header'):
+    storage.load_tasks()
+
+
 # --- malformed current-format rows --------------------------------------
 
 def test_load_tasks_warns_and_skips_row_with_missing_columns(storage_csv, capsys):
@@ -160,4 +190,38 @@ def test_load_tasks_warns_and_ignores_extra_columns_in_current_format(storage_cs
   captured = capsys.readouterr()
 
   assert tasks == [{'task': 'Good task', 'eta': '2026-08-17'}]
+  assert 'Warning' in captured.out
+
+
+def test_load_tasks_warns_and_defaults_invalid_eta(storage_csv, capsys):
+  """Regression test: an invalid/unparseable ETA used to be loaded
+  as-is with no validation. It must now be replaced with a default
+  ETA and a warning printed."""
+  with open(storage_csv, mode='w', newline='', encoding='utf-8') as f:
+    f.write('Number,Task,ETA\r\n')
+    f.write('1,Good task,not-a-date\r\n')
+
+  tasks = storage.load_tasks()
+  captured = capsys.readouterr()
+
+  assert len(tasks) == 1
+  assert tasks[0]['task'] == 'Good task'
+  assert tasks[0]['eta'] != 'not-a-date'
+  assert 'Warning' in captured.out
+  assert 'invalid ETA' in captured.out
+
+
+def test_load_tasks_skips_row_with_empty_task(storage_csv, capsys):
+  """Regression test: a row with an empty task (e.g. ',,2026-08-03' or
+  a hand-edited blank cell) used to be loaded as a blank task. It
+  should now be skipped with a warning."""
+  with open(storage_csv, mode='w', newline='', encoding='utf-8') as f:
+    f.write('Number,Task,ETA\r\n')
+    f.write('1,,2026-08-03\r\n')
+    f.write('2,Real task,2026-08-04\r\n')
+
+  tasks = storage.load_tasks()
+  captured = capsys.readouterr()
+
+  assert tasks == [{'task': 'Real task', 'eta': '2026-08-04'}]
   assert 'Warning' in captured.out
