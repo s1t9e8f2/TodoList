@@ -38,9 +38,16 @@ def _is_valid_eta(eta_text: str) -> bool:
 def _looks_like_unrecognized_header(row: list[str]) -> bool:
   """Detects a header row that uses different/incompatible columns than
   CSV_HEADER (e.g. 'Task,ETA' with no Number column), so it isn't
-  silently mistaken for legacy task data and migrated incorrectly."""
+  silently mistaken for legacy task data and migrated incorrectly.
+
+  Deliberately strict: ALL cells must be known column-name words, not
+  just one. A legacy data row whose task text happens to contain a
+  word like "task" (e.g. 'Bad,Task,WithCommas') must NOT be mistaken
+  for a header - only a row that looks entirely like a header (every
+  cell is one of Number/Task/ETA) is flagged."""
   normalized = [cell.strip().lower() for cell in row]
-  return any(cell in ('task', 'eta', 'number') for cell in normalized)
+  known_header_words = {'task', 'eta', 'number'}
+  return len(normalized) >= 1 and all(cell in known_header_words for cell in normalized)
 
 
 def load_tasks() -> list[Task]:

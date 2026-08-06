@@ -1,21 +1,22 @@
 """
-Regression tests for tasks.py (pytest version).
+Regression tests for tasks.py.
 
 tasks.py calls storage.save_tasks() internally, so these tests point
-storage.CSV_FILE at a temporary file (same technique as
-test_storage_pytest.py) to avoid touching the real MyTasks.csv.
+storage.CSV_FILE at a temporary file (same technique as test_storage.py)
+to avoid touching the real MyTasks.csv.
 
 Install pytest first:
     pip install pytest
 
 Run from the project root with:
-    pytest tests/test_tasks_pytest.py -v
+    pytest tests/test_tasks.py -v
 """
 
 import pytest
 
 import storage
 import tasks
+from storage import Task
 
 
 @pytest.fixture
@@ -29,7 +30,7 @@ def storage_csv(tmp_path, monkeypatch):
 # --- add_task ------------------------------------------------------------
 
 def test_add_task_appends_task_with_eta(storage_csv, monkeypatch):
-  task_list = []
+  task_list: list[Task] = []
   responses = iter(['Wash the car', '2026-08-20'])
   monkeypatch.setattr('builtins.input', lambda _: next(responses))
   tasks.add_task(task_list)
@@ -37,7 +38,7 @@ def test_add_task_appends_task_with_eta(storage_csv, monkeypatch):
 
 
 def test_add_task_persists_to_csv(storage_csv, monkeypatch):
-  task_list = []
+  task_list: list[Task] = []
   responses = iter(['Read a book', '2026-09-01'])
   monkeypatch.setattr('builtins.input', lambda _: next(responses))
   tasks.add_task(task_list)
@@ -45,7 +46,7 @@ def test_add_task_persists_to_csv(storage_csv, monkeypatch):
 
 
 def test_add_task_rejects_empty_task_then_accepts_valid(storage_csv, monkeypatch):
-  task_list = []
+  task_list: list[Task] = []
   responses = iter(['   ', 'Valid task', '2026-08-20'])
   monkeypatch.setattr('builtins.input', lambda _: next(responses))
   tasks.add_task(task_list)
@@ -53,7 +54,7 @@ def test_add_task_rejects_empty_task_then_accepts_valid(storage_csv, monkeypatch
 
 
 def test_add_task_rejects_invalid_eta_then_accepts_valid(storage_csv, monkeypatch):
-  task_list = []
+  task_list: list[Task] = []
   responses = iter(['Valid task', 'not-a-date', '2026-08-20'])
   monkeypatch.setattr('builtins.input', lambda _: next(responses))
   tasks.add_task(task_list)
@@ -63,7 +64,7 @@ def test_add_task_rejects_invalid_eta_then_accepts_valid(storage_csv, monkeypatc
 # --- remove_task ----------------------------------------------------
 
 def test_remove_task_removes_correct_item_by_number(storage_csv, monkeypatch):
-  task_list = [
+  task_list: list[Task] = [
       {'task': 'Task A', 'eta': '2026-08-01'},
       {'task': 'Task B', 'eta': '2026-08-02'},
       {'task': 'Task C', 'eta': '2026-08-03'},
@@ -77,7 +78,7 @@ def test_remove_task_removes_correct_item_by_number(storage_csv, monkeypatch):
 
 
 def test_remove_task_persists_to_csv(storage_csv, monkeypatch):
-  task_list = [
+  task_list: list[Task] = [
       {'task': 'Task A', 'eta': '2026-08-01'},
       {'task': 'Task B', 'eta': '2026-08-02'},
   ]
@@ -87,7 +88,7 @@ def test_remove_task_persists_to_csv(storage_csv, monkeypatch):
 
 
 def test_remove_task_rejects_out_of_range_then_accepts_valid(storage_csv, monkeypatch):
-  task_list = [
+  task_list: list[Task] = [
       {'task': 'Task A', 'eta': '2026-08-01'},
       {'task': 'Task B', 'eta': '2026-08-02'},
   ]
@@ -98,7 +99,7 @@ def test_remove_task_rejects_out_of_range_then_accepts_valid(storage_csv, monkey
 
 
 def test_remove_task_rejects_non_numeric_then_accepts_valid(storage_csv, monkeypatch):
-  task_list = [{'task': 'Task A', 'eta': '2026-08-01'}]
+  task_list: list[Task] = [{'task': 'Task A', 'eta': '2026-08-01'}]
   responses = iter(['abc', '1'])
   monkeypatch.setattr('builtins.input', lambda _: next(responses))
   tasks.remove_task(task_list)
@@ -109,7 +110,7 @@ def test_remove_task_returns_immediately_when_list_is_empty(storage_csv, monkeyp
   """Regression test: remove_task() used to loop forever asking for a
   task number when the list was empty, since no number could ever be
   in range. It should now return right away without calling input()."""
-  task_list = []
+  task_list: list[Task] = []
 
   def input_should_not_be_called(_):
     raise AssertionError('input() should not be called when the task list is empty')
@@ -128,7 +129,7 @@ def test_display_tasks_empty_list(capsys):
 
 
 def test_display_tasks_shows_header_and_rows(capsys):
-  task_list = [
+  task_list: list[Task] = [
       {'task': 'First', 'eta': '2026-08-17'},
       {'task': 'Second', 'eta': '2026-08-20'},
   ]

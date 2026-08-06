@@ -1,11 +1,11 @@
 """
-Regression tests for storage.py (pytest version).
+Regression tests for storage.py.
 
 Install pytest first:
     pip install pytest
 
 Run from the project root with:
-    pytest tests/test_storage_pytest.py -v
+    pytest tests/test_storage.py -v
 """
 
 import logging
@@ -15,6 +15,7 @@ import pytest
 from datetime import date as real_date
 
 import storage
+from storage import Task
 
 
 @pytest.fixture
@@ -40,10 +41,11 @@ def test_load_tasks_creates_empty_file_with_header_if_missing(storage_csv):
 def test_save_tasks_writes_header_and_rows(storage_csv):
   """Tests save_tasks() in isolation by reading the raw bytes on disk,
   instead of trusting load_tasks() to read them back correctly."""
-  storage.save_tasks([
+  tasks: list[Task] = [
       {'task': 'Купи мляко', 'eta': '2026-08-17'},
       {'task': 'Buy bread', 'eta': '2026-08-20'},
-  ])
+  ]
+  storage.save_tasks(tasks)
 
   with open(storage_csv, mode='rb') as f:
     raw_bytes = f.read()
@@ -72,7 +74,7 @@ def test_load_tasks_reads_existing_current_format_rows(storage_csv):
 
 
 def test_save_and_load_roundtrip(storage_csv):
-  original = [
+  original: list[Task] = [
       {'task': 'Купи мляко', 'eta': '2026-08-17'},
       {'task': 'Buy bread', 'eta': '2026-08-20'},
   ]
@@ -86,10 +88,11 @@ def test_save_tasks_creates_missing_parent_directory(tmp_path, monkeypatch):
   nested_path = tmp_path / 'nested' / 'sub' / 'MyTasks.csv'
   monkeypatch.setattr(storage, 'CSV_FILE', str(nested_path))
 
-  storage.save_tasks([{'task': 'A task', 'eta': '2026-08-17'}])  # must not raise
+  new_task: Task = {'task': 'A task', 'eta': '2026-08-17'}
+  storage.save_tasks([new_task])  # must not raise
 
   assert nested_path.exists()
-  assert storage.load_tasks() == [{'task': 'A task', 'eta': '2026-08-17'}]
+  assert storage.load_tasks() == [new_task]
 
 
 # --- legacy migration ------------------------------------------------
@@ -126,6 +129,11 @@ def test_load_tasks_migration_persists_new_format_to_disk(storage_csv):
 
 
 def test_load_tasks_logs_info_on_legacy_migration(storage_csv, caplog):
+  """Uses a legacy row that intentionally contains the word 'Task' as
+  a data value (not a header) - this is also a regression test for a
+  bug where such rows were wrongly mistaken for an unrecognized
+  header (see test_load_tasks_raises_on_unrecognized_header below for
+  the case that SHOULD raise)."""
   with open(storage_csv, mode='w', newline='', encoding='utf-8') as f:
     f.write('Bad,Task,WithCommas\r\n')
 
@@ -159,7 +167,12 @@ def test_load_tasks_raises_on_unrecognized_header(storage_csv):
   """Regression test: a header using different columns (e.g. 'Task,ETA'
   with no Number column) used to be silently treated as legacy data,
   corrupting real ETA values with the default. It must now raise a
-  clear error instead of guessing."""
+  clear error instead of guessing.
+
+  Unlike test_load_tasks_logs_info_on_legacy_migration above, EVERY
+  cell in this row is a known column-name word ('task', 'eta') - that
+  is what distinguishes a genuine header from ordinary data that
+  merely contains one of those words."""
   with open(storage_csv, mode='w', newline='', encoding='utf-8') as f:
     f.write('Task,ETA\r\n')
     f.write('Buy milk,2026-08-03\r\n')

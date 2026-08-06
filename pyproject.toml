@@ -1,0 +1,15 @@
+[tool.pytest.ini_options]
+# --mypy enables the pytest-mypy plugin automatically on every `pytest`
+# run, so you don't need to pass the flag manually each time.
+addopts = "--mypy"
+testpaths = ["."]
+
+[tool.mypy]
+python_version = "3.10"
+# Lenient defaults to start with - tighten these later as the codebase
+# grows more comfortable with strict typing.
+ignore_missing_imports = true
+check_untyped_defs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+exclude = ["\\.venv", "build"]
