@@ -1,7 +1,14 @@
 [tool.pytest.ini_options]
 # --mypy enables the pytest-mypy plugin automatically on every `pytest`
 # run, so you don't need to pass the flag manually each time.
-addopts = "--mypy"
+# --ruff enables ruff linting the same way (unused imports, undefined
+# names, etc.). --ruff-format is intentionally NOT enabled yet - the
+# codebase uses 2-space indentation and single quotes, while ruff's
+# formatter defaults to Black-style (4-space, double quotes). Run
+# 'ruff format .' locally first to reformat the codebase, then add
+# --ruff-format here once the style is consistent - otherwise every
+# file fails the format check immediately for style, not bugs.
+addopts = "--mypy --ruff"
 testpaths = ["."]
 
 [tool.mypy]
@@ -13,3 +20,14 @@ check_untyped_defs = true
 warn_unused_ignores = true
 warn_redundant_casts = true
 exclude = ["\\.venv", "build"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+# Matches the codebase's current style (2-space indent). Remove this
+# once/if you decide to adopt ruff's default 4-space Black-style
+# formatting via 'ruff format .'.
+indent-width = 2
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]  # pycodestyle, pyflakes, isort

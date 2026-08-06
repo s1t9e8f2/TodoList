@@ -10,9 +10,9 @@ Run from the project root with:
 
 import logging
 import os
+from datetime import date as real_date
 
 import pytest
-from datetime import date as real_date
 
 import storage
 from storage import Task
@@ -196,7 +196,9 @@ def test_load_tasks_warns_and_skips_row_with_missing_columns(storage_csv, caplog
   assert any(record.levelname == 'WARNING' for record in caplog.records)
 
 
-def test_load_tasks_warns_and_ignores_extra_columns_in_current_format(storage_csv, caplog):
+def test_load_tasks_warns_and_ignores_extra_columns_in_current_format(
+    storage_csv, caplog
+):
   with open(storage_csv, mode='w', newline='', encoding='utf-8') as f:
     f.write('Number,Task,ETA\r\n')
     f.write('1,Good task,2026-08-17,extra,columns\r\n')

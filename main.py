@@ -3,8 +3,8 @@
 import logging
 
 from storage import load_tasks
+from tasks import add_task, display_tasks, remove_task
 from validation import get_choice
-from tasks import display_tasks, add_task, remove_task
 
 logger = logging.getLogger(__name__)
 

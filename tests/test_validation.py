@@ -5,11 +5,10 @@ Install pytest first:
     pip install pytest
 
 Run from the project root with:
-    pytest tests/test_validation_pytest.py -v
+    pytest tests/test_validation.py -v
 """
 
 import validation
-
 
 # --- get_choice ---------------------------------------------------------
 
