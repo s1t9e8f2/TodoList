@@ -6,31 +6,31 @@ from storage import ETA_DATE_FORMAT
 
 
 def get_choice() -> str:
-  while True:
-    choice = input('Enter your choice: ').strip()
-    valid_choices = ('1', '2', '3', '4')
-    if choice not in valid_choices:
-      print('Invalid choice')
-      continue
-    else:
-      return choice
+    while True:
+        choice = input("Enter your choice: ").strip()
+        valid_choices = ("1", "2", "3", "4")
+        if choice not in valid_choices:
+            print("Invalid choice")
+            continue
+        else:
+            return choice
 
 
 def get_eta_input() -> str:
-  """Ask the user for an ETA date, validate its format, and require it
-  to be today or a future date (a past ETA is rejected as a likely
-  mistake)."""
-  while True:
-    eta_text = input('Enter ETA (YYYY-MM-DD): ').strip()
+    """Ask the user for an ETA date, validate its format, and require it
+    to be today or a future date (a past ETA is rejected as a likely
+    mistake)."""
+    while True:
+        eta_text = input("Enter ETA (YYYY-MM-DD): ").strip()
 
-    try:
-      parsed_date = datetime.strptime(eta_text, ETA_DATE_FORMAT).date()
-    except ValueError:
-      print('Invalid date format! Please use YYYY-MM-DD.')
-      continue
+        try:
+            parsed_date = datetime.strptime(eta_text, ETA_DATE_FORMAT).date()
+        except ValueError:
+            print("Invalid date format! Please use YYYY-MM-DD.")
+            continue
 
-    if parsed_date < date.today():
-      print('ETA cannot be in the past. Please enter today or a future date.')
-      continue
+        if parsed_date < date.today():
+            print("ETA cannot be in the past. Please enter today or a future date.")
+            continue
 
-    return eta_text
+        return eta_text

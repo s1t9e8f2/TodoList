@@ -8,7 +8,7 @@
 # 'ruff format .' locally first to reformat the codebase, then add
 # --ruff-format here once the style is consistent - otherwise every
 # file fails the format check immediately for style, not bugs.
-addopts = "--mypy --ruff"
+addopts = "--mypy --ruff --ruff-format"
 testpaths = ["."]
 
 [tool.mypy]
@@ -24,10 +24,6 @@ exclude = ["\\.venv", "build"]
 [tool.ruff]
 line-length = 88
 target-version = "py310"
-# Matches the codebase's current style (2-space indent). Remove this
-# once/if you decide to adopt ruff's default 4-space Black-style
-# formatting via 'ruff format .'.
-indent-width = 2
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]  # pycodestyle, pyflakes, isort

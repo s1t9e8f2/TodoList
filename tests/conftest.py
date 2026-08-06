@@ -3,6 +3,7 @@ Makes sure pytest can import modules from the project root (one level
 up from tests/) when running `pytest` or `pytest tests/`, regardless
 of the current working directory.
 """
+
 import os
 import sys
 
