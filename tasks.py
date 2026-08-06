@@ -1,10 +1,10 @@
 """Task operations: adding, removing, and displaying tasks."""
 
-from storage import save_tasks
+from storage import Task, save_tasks
 from validation import get_eta_input
 
 
-def display_tasks(tasks):
+def display_tasks(tasks: list[Task]) -> None:
   if not tasks:
     print('No tasks in the list.')
     return
@@ -14,7 +14,7 @@ def display_tasks(tasks):
     print(f'{index:<8}{item["task"]:<30}{item["eta"]:<12}')
 
 
-def add_task(tasks):
+def add_task(tasks: list[Task]) -> None:
   while True:
     task_text = input('Enter a new task: ').strip()
     if len(task_text) != 0:
@@ -27,7 +27,7 @@ def add_task(tasks):
   save_tasks(tasks)
 
 
-def remove_task(tasks):
+def remove_task(tasks: list[Task]) -> None:
   display_tasks(tasks)
 
   if not tasks:

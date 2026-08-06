@@ -8,6 +8,7 @@ Run from the project root with:
     pytest tests/test_storage_pytest.py -v
 """
 
+import logging
 import os
 
 import pytest
@@ -124,16 +125,17 @@ def test_load_tasks_migration_persists_new_format_to_disk(storage_csv):
   assert first_line == 'Number,Task,ETA'
 
 
-def test_load_tasks_warns_on_extra_columns_in_legacy_format(storage_csv, capsys):
+def test_load_tasks_logs_info_on_legacy_migration(storage_csv, caplog):
   with open(storage_csv, mode='w', newline='', encoding='utf-8') as f:
     f.write('Bad,Task,WithCommas\r\n')
 
-  tasks = storage.load_tasks()
-  captured = capsys.readouterr()
+  with caplog.at_level(logging.INFO, logger='storage'):
+    tasks = storage.load_tasks()
 
   assert len(tasks) == 1
   assert tasks[0]['task'] == 'Bad'
-  assert 'Warning' in captured.out
+  assert any('Detected tasks without an ETA' in record.message
+             for record in caplog.records)
 
 
 def test_load_tasks_migration_creates_backup_file(storage_csv):
@@ -168,60 +170,59 @@ def test_load_tasks_raises_on_unrecognized_header(storage_csv):
 
 # --- malformed current-format rows --------------------------------------
 
-def test_load_tasks_warns_and_skips_row_with_missing_columns(storage_csv, capsys):
+def test_load_tasks_warns_and_skips_row_with_missing_columns(storage_csv, caplog):
   with open(storage_csv, mode='w', newline='', encoding='utf-8') as f:
     f.write('Number,Task,ETA\r\n')
     f.write('1,Good task,2026-08-17\r\n')
     f.write('2,Incomplete row\r\n')  # missing ETA column
 
-  tasks = storage.load_tasks()
-  captured = capsys.readouterr()
+  with caplog.at_level(logging.WARNING, logger='storage'):
+    tasks = storage.load_tasks()
 
   assert tasks == [{'task': 'Good task', 'eta': '2026-08-17'}]
-  assert 'Warning' in captured.out
+  assert any(record.levelname == 'WARNING' for record in caplog.records)
 
 
-def test_load_tasks_warns_and_ignores_extra_columns_in_current_format(storage_csv, capsys):
+def test_load_tasks_warns_and_ignores_extra_columns_in_current_format(storage_csv, caplog):
   with open(storage_csv, mode='w', newline='', encoding='utf-8') as f:
     f.write('Number,Task,ETA\r\n')
     f.write('1,Good task,2026-08-17,extra,columns\r\n')
 
-  tasks = storage.load_tasks()
-  captured = capsys.readouterr()
+  with caplog.at_level(logging.WARNING, logger='storage'):
+    tasks = storage.load_tasks()
 
   assert tasks == [{'task': 'Good task', 'eta': '2026-08-17'}]
-  assert 'Warning' in captured.out
+  assert any(record.levelname == 'WARNING' for record in caplog.records)
 
 
-def test_load_tasks_warns_and_defaults_invalid_eta(storage_csv, capsys):
+def test_load_tasks_warns_and_defaults_invalid_eta(storage_csv, caplog):
   """Regression test: an invalid/unparseable ETA used to be loaded
   as-is with no validation. It must now be replaced with a default
-  ETA and a warning printed."""
+  ETA and a warning logged."""
   with open(storage_csv, mode='w', newline='', encoding='utf-8') as f:
     f.write('Number,Task,ETA\r\n')
     f.write('1,Good task,not-a-date\r\n')
 
-  tasks = storage.load_tasks()
-  captured = capsys.readouterr()
+  with caplog.at_level(logging.WARNING, logger='storage'):
+    tasks = storage.load_tasks()
 
   assert len(tasks) == 1
   assert tasks[0]['task'] == 'Good task'
   assert tasks[0]['eta'] != 'not-a-date'
-  assert 'Warning' in captured.out
-  assert 'invalid ETA' in captured.out
+  assert any('invalid ETA' in record.message for record in caplog.records)
 
 
-def test_load_tasks_skips_row_with_empty_task(storage_csv, capsys):
+def test_load_tasks_skips_row_with_empty_task(storage_csv, caplog):
   """Regression test: a row with an empty task (e.g. ',,2026-08-03' or
   a hand-edited blank cell) used to be loaded as a blank task. It
-  should now be skipped with a warning."""
+  should now be skipped with a warning logged."""
   with open(storage_csv, mode='w', newline='', encoding='utf-8') as f:
     f.write('Number,Task,ETA\r\n')
     f.write('1,,2026-08-03\r\n')
     f.write('2,Real task,2026-08-04\r\n')
 
-  tasks = storage.load_tasks()
-  captured = capsys.readouterr()
+  with caplog.at_level(logging.WARNING, logger='storage'):
+    tasks = storage.load_tasks()
 
   assert tasks == [{'task': 'Real task', 'eta': '2026-08-04'}]
-  assert 'Warning' in captured.out
+  assert any(record.levelname == 'WARNING' for record in caplog.records)

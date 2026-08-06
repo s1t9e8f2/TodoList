@@ -2,22 +2,32 @@
 including migration of files saved before the ETA column existed."""
 
 import csv
+import logging
 import os
 import shutil
 from datetime import date, datetime, timedelta
+from typing import TypedDict
 
-CSV_FILE = 'MyTasks.csv'
-CSV_HEADER = ['Number', 'Task', 'ETA']
-ETA_DATE_FORMAT = '%Y-%m-%d'
-DEFAULT_ETA_DAYS = 14
+logger = logging.getLogger(__name__)
 
 
-def _default_eta():
+class Task(TypedDict):
+  task: str
+  eta: str
+
+
+CSV_FILE: str = 'MyTasks.csv'
+CSV_HEADER: list[str] = ['Number', 'Task', 'ETA']
+ETA_DATE_FORMAT: str = '%Y-%m-%d'
+DEFAULT_ETA_DAYS: int = 14
+
+
+def _default_eta() -> str:
   """ETA assigned to legacy tasks that were saved before the ETA column existed."""
   return (date.today() + timedelta(days=DEFAULT_ETA_DAYS)).strftime(ETA_DATE_FORMAT)
 
 
-def _is_valid_eta(eta_text):
+def _is_valid_eta(eta_text: str) -> bool:
   try:
     datetime.strptime(eta_text, ETA_DATE_FORMAT)
     return True
@@ -25,7 +35,7 @@ def _is_valid_eta(eta_text):
     return False
 
 
-def _looks_like_unrecognized_header(row):
+def _looks_like_unrecognized_header(row: list[str]) -> bool:
   """Detects a header row that uses different/incompatible columns than
   CSV_HEADER (e.g. 'Task,ETA' with no Number column), so it isn't
   silently mistaken for legacy task data and migrated incorrectly."""
@@ -33,7 +43,7 @@ def _looks_like_unrecognized_header(row):
   return any(cell in ('task', 'eta', 'number') for cell in normalized)
 
 
-def load_tasks():
+def load_tasks() -> list[Task]:
   """Load tasks from the CSV file. If the file doesn't exist, create an
   empty one with the current header. If the file is in the old format
   (no header, one task per line, no ETA), migrate it: every task gets a
@@ -68,64 +78,65 @@ def load_tasks():
   return _migrate_legacy_rows(rows)
 
 
-def _parse_current_format_rows(data_rows):
-  tasks = []
+def _parse_current_format_rows(data_rows: list[list[str]]) -> list[Task]:
+  tasks: list[Task] = []
   for line_number, row in enumerate(data_rows, start=2):
     if not row:
       continue
     if len(row) < 3:
-      print(f'Warning: {CSV_FILE} line {line_number} is missing columns '
-            f'and will be skipped: {row}')
+      logger.warning('%s line %d is missing columns and will be skipped: %s',
+                      CSV_FILE, line_number, row)
       continue
     if len(row) > 3:
-      print(f'Warning: {CSV_FILE} line {line_number} has extra columns '
-            f'that will be ignored: {row}')
+      logger.warning('%s line %d has extra columns that will be ignored: %s',
+                      CSV_FILE, line_number, row)
 
     _, task, eta = row[0], row[1], row[2]
     task = task.strip()
     if not task:
-      print(f'Warning: {CSV_FILE} line {line_number} has an empty task '
-            f'and will be skipped.')
+      logger.warning('%s line %d has an empty task and will be skipped.',
+                      CSV_FILE, line_number)
       continue
 
     if not _is_valid_eta(eta):
-      print(f'Warning: {CSV_FILE} line {line_number} has an invalid ETA '
-            f'{eta!r}; using a default ETA of {DEFAULT_ETA_DAYS} days '
-            f'from today instead.')
+      logger.warning(
+          '%s line %d has an invalid ETA %r; using a default ETA of '
+          '%d days from today instead.', CSV_FILE, line_number, eta,
+          DEFAULT_ETA_DAYS)
       eta = _default_eta()
 
     tasks.append({'task': task, 'eta': eta})
   return tasks
 
 
-def _migrate_legacy_rows(rows):
-  print(f'Detected tasks without an ETA in {CSV_FILE} - assigning a '
-        f'default ETA of {DEFAULT_ETA_DAYS} calendar days from today.')
+def _migrate_legacy_rows(rows: list[list[str]]) -> list[Task]:
+  logger.info('Detected tasks without an ETA in %s - assigning a default '
+              'ETA of %d calendar days from today.', CSV_FILE, DEFAULT_ETA_DAYS)
   default_eta = _default_eta()
 
-  tasks = []
+  tasks: list[Task] = []
   for line_number, row in enumerate(rows, start=1):
     if not row:
       continue
     task = row[0].strip()
     if not task:
-      print(f'Warning: {CSV_FILE} line {line_number} is empty and will '
-            f'be skipped.')
+      logger.warning('%s line %d is empty and will be skipped.',
+                      CSV_FILE, line_number)
       continue
     if len(row) > 1:
-      print(f'Warning: {CSV_FILE} line {line_number} has extra columns '
-            f'that will be ignored: {row}')
+      logger.warning('%s line %d has extra columns that will be ignored: %s',
+                      CSV_FILE, line_number, row)
     tasks.append({'task': task, 'eta': default_eta})
 
   backup_path = CSV_FILE + '.bak'
   shutil.copy2(CSV_FILE, backup_path)
-  print(f'Backed up the original file to {backup_path} before migrating.')
+  logger.info('Backed up the original file to %s before migrating.', backup_path)
 
   save_tasks(tasks)  # persist the migration immediately
   return tasks
 
 
-def save_tasks(tasks):
+def save_tasks(tasks: list[Task]) -> None:
   """Save the current list of tasks to the CSV file, with a header row
   (Number, Task, ETA). Supports Cyrillic and Latin text via UTF-8.
 

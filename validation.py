@@ -5,7 +5,7 @@ from datetime import date, datetime
 from storage import ETA_DATE_FORMAT
 
 
-def get_choice():
+def get_choice() -> str:
   while True:
     choice = input('Enter your choice: ').strip()
     valid_choices = ('1', '2', '3', '4')
@@ -16,7 +16,7 @@ def get_choice():
       return choice
 
 
-def get_eta_input():
+def get_eta_input() -> str:
   """Ask the user for an ETA date, validate its format, and require it
   to be today or a future date (a past ETA is rejected as a likely
   mistake)."""
