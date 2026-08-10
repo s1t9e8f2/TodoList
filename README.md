@@ -4,7 +4,7 @@ A simple command-line todo list application with CSV persistence and ETA (due da
 
 ## Features
 
-- View, add, and remove tasks from the command line
+- View, add, edit, and remove tasks from the command line
 - Each task has a text description and an ETA (due date)
 - Tasks are automatically saved to `MyTasks.csv` (Number, Task, ETA columns)
 - Supports both Cyrillic and Latin text
@@ -27,8 +27,9 @@ You'll see a menu:
 Todo List Menu:
 1. View Tasks
 2. Add a Task
-3. Remove a Task
-4. Exit
+3. Edit a Task
+4. Remove a Task
+5. Exit
 ```
 
 Tasks are saved to `MyTasks.csv` in the current directory. This file is created automatically the first time you run the app.

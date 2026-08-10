@@ -27,6 +27,44 @@ def add_task(tasks: list[Task]) -> None:
     save_tasks(tasks)
 
 
+def edit_task(tasks: list[Task]) -> None:
+    display_tasks(tasks)
+
+    if not tasks:
+        return
+
+    while True:
+        try:
+            task_number = int(input("Enter the task number to edit: "))
+            if 1 <= task_number <= len(tasks):
+                # Same position-based lookup as remove_task() - see the note
+                # there about Number always matching the current list order.
+                break
+            else:
+                raise ValueError
+        except ValueError:
+            print("Invalid task number")
+
+    item = tasks[task_number - 1]
+
+    print(f"Current task: {item['task']}")
+    new_text = input("Enter new task text (leave blank to keep current): ").strip()
+    if new_text:
+        item["task"] = new_text
+
+    print(f"Current ETA: {item['eta']}")
+    while True:
+        change_eta = input("Change ETA? (y/n): ").strip().lower()
+        if change_eta in ("y", "n"):
+            break
+        print("Invalid choice. Please enter y or n.")
+
+    if change_eta == "y":
+        item["eta"] = get_eta_input()
+
+    save_tasks(tasks)
+
+
 def remove_task(tasks: list[Task]) -> None:
     display_tasks(tasks)
 

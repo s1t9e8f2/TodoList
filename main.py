@@ -3,7 +3,7 @@
 import logging
 
 from storage import load_tasks
-from tasks import add_task, display_tasks, remove_task
+from tasks import add_task, display_tasks, edit_task, remove_task
 from validation import get_choice
 
 logger = logging.getLogger(__name__)
@@ -13,8 +13,9 @@ def print_menu() -> None:
     print("\nTodo List Menu:")
     print("1. View Tasks")
     print("2. Add a Task")
-    print("3. Remove a Task")
-    print("4. Exit")
+    print("3. Edit a Task")
+    print("4. Remove a Task")
+    print("5. Exit")
 
 
 def main() -> None:
@@ -34,6 +35,8 @@ def main() -> None:
         elif choice == "2":
             add_task(tasks)
         elif choice == "3":
+            edit_task(tasks)
+        elif choice == "4":
             remove_task(tasks)
         else:
             break

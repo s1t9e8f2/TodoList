@@ -8,7 +8,7 @@ from storage import ETA_DATE_FORMAT
 def get_choice() -> str:
     while True:
         choice = input("Enter your choice: ").strip()
-        valid_choices = ("1", "2", "3", "4")
+        valid_choices = ("1", "2", "3", "4", "5")
         if choice not in valid_choices:
             print("Invalid choice")
             continue
