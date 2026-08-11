@@ -2,6 +2,8 @@
 
 from datetime import date, datetime, timedelta
 
+from colorama import Fore, Style
+
 from storage import ETA_DATE_FORMAT, Task, save_tasks
 from validation import get_days_ahead_input, get_eta_input
 
@@ -47,13 +49,23 @@ def list_urgent_tasks(tasks: list[Task]) -> None:
         if datetime.strptime(item["eta"], ETA_DATE_FORMAT).date() < today
     ]
     if overdue:
-        print(f"\n*** WARNING: {len(overdue)} task(s) are OVERDUE! ***\n")
+        warning_message = (
+            f"\n{Fore.RED}{Style.BRIGHT}*** WARNING: {len(overdue)} task(s) "
+            f"are OVERDUE! ***{Style.RESET_ALL}\n"
+        )
+        print(warning_message)
 
     print(f"{'Task':<30}{'ETA':<12}{'Status':<10}")
     for item in matching:
         eta_date = datetime.strptime(item["eta"], ETA_DATE_FORMAT).date()
-        status = "OVERDUE" if eta_date < today else ""
-        print(f"{item['task']:<30}{item['eta']:<12}{status:<10}")
+        if eta_date < today:
+            # Pad the plain text to the column width FIRST, then wrap it in
+            # color codes - otherwise the invisible ANSI escape characters
+            # would count towards the padding and misalign the column.
+            status = f"{Fore.RED}{Style.BRIGHT}{'OVERDUE':<10}{Style.RESET_ALL}"
+        else:
+            status = f"{'':<10}"
+        print(f"{item['task']:<30}{item['eta']:<12}{status}")
 
 
 def add_task(tasks: list[Task]) -> None:

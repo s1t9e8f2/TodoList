@@ -1,9 +1,10 @@
-# Development/testing tools - the app itself has no runtime dependencies
-# (uses only the Python standard library).
-#
 # Install with:
-#     pip install -r requirements-dev.txt
+#     pip install -r requirements.txt
 
+# Runtime dependency (required to run the app)
+colorama>=0.4
+
+# Development/testing tools
 pytest>=8.0
 pytest-mypy>=0.10
 mypy>=1.0

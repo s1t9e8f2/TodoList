@@ -10,6 +10,8 @@ Run from the project root with:
 
 from datetime import date, timedelta
 
+from colorama import Fore, Style
+
 import tasks
 from storage import Task
 
@@ -81,6 +83,35 @@ def test_list_urgent_tasks_includes_and_warns_about_overdue_tasks(monkeypatch, c
     assert "Overdue task" in output
     # The overdue task must also be listed first (soonest/most urgent).
     assert output.index("Overdue task") < output.index("Upcoming task")
+
+
+def test_list_urgent_tasks_colors_overdue_status_red_and_bold(monkeypatch, capsys):
+    """The OVERDUE label (and the warning banner) should be colored red
+    and bold in the terminal - and only for overdue rows, not the whole
+    table."""
+    today = date.today()
+    task_list: list[Task] = [
+        {
+            "task": "Overdue task",
+            "eta": (today - timedelta(days=1)).strftime("%Y-%m-%d"),
+        },
+        {
+            "task": "Upcoming task",
+            "eta": (today + timedelta(days=2)).strftime("%Y-%m-%d"),
+        },
+    ]
+    monkeypatch.setattr("builtins.input", lambda _: "7")
+    tasks.list_urgent_tasks(task_list)
+
+    output = capsys.readouterr().out
+    assert Fore.RED in output
+    assert Style.BRIGHT in output
+    assert Style.RESET_ALL in output
+
+    upcoming_line = next(
+        line for line in output.splitlines() if "Upcoming task" in line
+    )
+    assert Fore.RED not in upcoming_line
 
 
 def test_list_urgent_tasks_shows_message_when_none_match(monkeypatch, capsys):

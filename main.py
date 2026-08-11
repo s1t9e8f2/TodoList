@@ -2,6 +2,8 @@
 
 import logging
 
+import colorama
+
 from storage import load_tasks
 from tasks import add_task, display_tasks, edit_task, list_urgent_tasks, remove_task
 from validation import get_choice
@@ -46,6 +48,10 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    # Required on Windows so ANSI color codes (used for the overdue-task
+    # warning in list_urgent_tasks) render correctly instead of printing
+    # as raw escape sequences. Harmless no-op on Linux/macOS.
+    colorama.init(autoreset=True)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     try:
         main()

@@ -6,7 +6,7 @@ A simple command-line todo list application with CSV persistence and ETA (due da
 
 - View, add, edit, and remove tasks from the command line
 - Each task has a text description and an ETA (due date)
-- Show the most urgent tasks within a user-given number of days, sorted soonest-first, with a visible warning for any overdue tasks
+- Show the most urgent tasks within a user-given number of days, sorted soonest-first, with a visible red/bold warning for any overdue tasks
 - Tasks are automatically saved to `MyTasks.csv` (Number, Task, ETA columns)
 - Supports both Cyrillic and Latin text
 - Automatically migrates older CSV files (saved before the ETA column existed), assigning a default ETA and backing up the original file first
@@ -14,7 +14,7 @@ A simple command-line todo list application with CSV persistence and ETA (due da
 ## Requirements
 
 - Python 3.10+
-- No runtime dependencies (uses only the standard library)
+- Runtime dependency: `colorama` (for colored terminal output on Windows/Linux/macOS)
 
 ## Usage
 
