@@ -17,15 +17,6 @@ import pytest
 import storage
 from storage import Task
 
-
-@pytest.fixture
-def storage_csv(tmp_path, monkeypatch):
-    """Point CSV_FILE at a temporary file for the duration of a test."""
-    csv_path = tmp_path / "MyTasks.csv"
-    monkeypatch.setattr(storage, "CSV_FILE", str(csv_path))
-    return str(csv_path)
-
-
 # --- basics --------------------------------------------------------------
 
 

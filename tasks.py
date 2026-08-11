@@ -1,7 +1,9 @@
 """Task operations: adding, removing, and displaying tasks."""
 
-from storage import Task, save_tasks
-from validation import get_eta_input
+from datetime import date, datetime, timedelta
+
+from storage import ETA_DATE_FORMAT, Task, save_tasks
+from validation import get_days_ahead_input, get_eta_input
 
 
 def display_tasks(tasks: list[Task]) -> None:
@@ -12,6 +14,46 @@ def display_tasks(tasks: list[Task]) -> None:
     print(f"{'Number':<8}{'Task':<30}{'ETA':<12}")
     for index, item in enumerate(tasks, start=1):
         print(f"{index:<8}{item['task']:<30}{item['eta']:<12}")
+
+
+def list_urgent_tasks(tasks: list[Task]) -> None:
+    """Ask the user for a number of days ahead, then show every task due
+    within that window - including any already-overdue tasks, since
+    those are the most urgent of all - sorted soonest-first. Shows a
+    visible warning banner if any matching task is overdue."""
+    if not tasks:
+        print("No tasks in the list.")
+        return
+
+    days_ahead = get_days_ahead_input()
+    today = date.today()
+    cutoff = today + timedelta(days=days_ahead)
+
+    matching = [
+        item
+        for item in tasks
+        if datetime.strptime(item["eta"], ETA_DATE_FORMAT).date() <= cutoff
+    ]
+
+    if not matching:
+        print(f"No tasks due within the next {days_ahead} day(s).")
+        return
+
+    matching.sort(key=lambda item: item["eta"])
+
+    overdue = [
+        item
+        for item in matching
+        if datetime.strptime(item["eta"], ETA_DATE_FORMAT).date() < today
+    ]
+    if overdue:
+        print(f"\n*** WARNING: {len(overdue)} task(s) are OVERDUE! ***\n")
+
+    print(f"{'Task':<30}{'ETA':<12}{'Status':<10}")
+    for item in matching:
+        eta_date = datetime.strptime(item["eta"], ETA_DATE_FORMAT).date()
+        status = "OVERDUE" if eta_date < today else ""
+        print(f"{item['task']:<30}{item['eta']:<12}{status:<10}")
 
 
 def add_task(tasks: list[Task]) -> None:

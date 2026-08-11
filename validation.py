@@ -8,7 +8,7 @@ from storage import ETA_DATE_FORMAT
 def get_choice() -> str:
     while True:
         choice = input("Enter your choice: ").strip()
-        valid_choices = ("1", "2", "3", "4", "5")
+        valid_choices = ("1", "2", "3", "4", "5", "6")
         if choice not in valid_choices:
             print("Invalid choice")
             continue
@@ -34,3 +34,23 @@ def get_eta_input() -> str:
             continue
 
         return eta_text
+
+
+def get_days_ahead_input() -> int:
+    """Ask the user how many days ahead defines the urgency window for
+    list_urgent_tasks(). 0 is allowed (tasks due today or already
+    overdue only); negative numbers are rejected."""
+    while True:
+        days_text = input("Show tasks due within how many days? ").strip()
+
+        try:
+            days = int(days_text)
+        except ValueError:
+            print("Please enter a whole number.")
+            continue
+
+        if days < 0:
+            print("Please enter a number of days that is 0 or greater.")
+            continue
+
+        return days

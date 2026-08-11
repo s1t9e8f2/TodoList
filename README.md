@@ -6,6 +6,7 @@ A simple command-line todo list application with CSV persistence and ETA (due da
 
 - View, add, edit, and remove tasks from the command line
 - Each task has a text description and an ETA (due date)
+- Show the most urgent tasks within a user-given number of days, sorted soonest-first, with a visible warning for any overdue tasks
 - Tasks are automatically saved to `MyTasks.csv` (Number, Task, ETA columns)
 - Supports both Cyrillic and Latin text
 - Automatically migrates older CSV files (saved before the ETA column existed), assigning a default ETA and backing up the original file first
@@ -29,7 +30,8 @@ Todo List Menu:
 2. Add a Task
 3. Edit a Task
 4. Remove a Task
-5. Exit
+5. Show Urgent Tasks
+6. Exit
 ```
 
 Tasks are saved to `MyTasks.csv` in the current directory. This file is created automatically the first time you run the app.

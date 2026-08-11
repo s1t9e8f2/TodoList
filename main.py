@@ -3,7 +3,7 @@
 import logging
 
 from storage import load_tasks
-from tasks import add_task, display_tasks, edit_task, remove_task
+from tasks import add_task, display_tasks, edit_task, list_urgent_tasks, remove_task
 from validation import get_choice
 
 logger = logging.getLogger(__name__)
@@ -15,7 +15,8 @@ def print_menu() -> None:
     print("2. Add a Task")
     print("3. Edit a Task")
     print("4. Remove a Task")
-    print("5. Exit")
+    print("5. Show Urgent Tasks")
+    print("6. Exit")
 
 
 def main() -> None:
@@ -38,6 +39,8 @@ def main() -> None:
             edit_task(tasks)
         elif choice == "4":
             remove_task(tasks)
+        elif choice == "5":
+            list_urgent_tasks(tasks)
         else:
             break
 
